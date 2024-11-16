@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import axios from "axios";
+import { QRCodeCanvas } from "qrcode.react";
+import JsBarcode from "jsbarcode";
 
 const App = () => {
   return (
@@ -62,9 +64,21 @@ const Pedidos = () => {
     }
   };
 
+  const generateBarcode = (id) => {
+    const canvas = document.getElementById(`barcode-${id}`);
+    if (canvas) {
+      JsBarcode(canvas, id, { format: "CODE128", width: 2, height: 50 });
+    }
+  };
+
   useEffect(() => {
     loadPedidos();
   }, []);
+
+  useEffect(() => {
+    // Generar códigos de barras para cada pedido
+    pedidos.forEach((pedido) => generateBarcode(pedido.id));
+  }, [pedidos]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -202,6 +216,21 @@ const Pedidos = () => {
               <p>
                 <strong>Producto:</strong> {pedido.producto}
               </p>
+              <div>
+                <p>
+                  <strong>Código QR:</strong>
+                </p>
+                <QRCodeCanvas
+                  value={`${pedido.nombre}, ${pedido.direccion}, ${pedido.telefono}`}
+                  size={128}
+                />
+              </div>
+              <div>
+                <p>
+                  <strong>Código de Barras:</strong>
+                </p>
+                <canvas id={`barcode-${pedido.id}`} />
+              </div>
               <button
                 onClick={() => deleteOrder(pedido.id)}
                 style={{
